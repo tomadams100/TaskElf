@@ -1,13 +1,18 @@
 import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import Task from './Task';
-interface ColumnProps {
+import { TaskType } from '../App';
+interface Args {
   col: { id: string; list: { id: string; content: string }[] };
   onAddTask: (colId: string) => void;
+  setSelectedTask: React.Dispatch<
+    React.SetStateAction<Record<string, TaskType> | undefined>
+  >;
+  setTitle: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-export default function Column(args: ColumnProps) {
-  const { col, onAddTask } = args;
+export default function Column(args: Args) {
+  const { col, onAddTask, setSelectedTask, setTitle } = args;
   const { id, list } = col;
 
   const handleAddTask: React.MouseEventHandler<HTMLDivElement> = (event) => {
@@ -25,9 +30,19 @@ export default function Column(args: ColumnProps) {
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {list.map((task, index) => (
-                <Task key={task.id} task={task} index={index} />
-              ))}
+              {list.map((task, index) => {
+                return (
+                  <label
+                    htmlFor="my-drawer-4"
+                    onClick={() => {
+                      setSelectedTask({ [id]: task });
+                      setTitle(task.content);
+                    }}
+                  >
+                    <Task key={task.id} task={task} index={index} />
+                  </label>
+                );
+              })}
               {provided.placeholder}
             </div>
           )}
