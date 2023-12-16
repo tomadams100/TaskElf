@@ -1,9 +1,9 @@
 import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import Task from './Task';
-import { TaskType } from '../App';
+import { ColumnType, TaskType } from '../App';
 interface Args {
-  col: { id: string; list: { id: string; content: string }[] };
+  col: ColumnType[keyof ColumnType];
   onAddTask: (colId: string) => void;
   setSelectedTask: React.Dispatch<
     React.SetStateAction<Record<string, TaskType> | undefined>
