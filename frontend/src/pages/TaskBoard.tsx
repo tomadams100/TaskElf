@@ -44,9 +44,10 @@ export default function TaskBoard() {
   });
   const [selectedTask, setSelectedTask] = useState<TaskType<Status>>();
   const [title, setTitle] = useState<string>();
-  const addTask = trpc.addTask.useQuery();
 
-  console.log('this', addTask.data);
+  const addTaskMutation = trpc.addTask.useMutation();
+  const editTaskMutation = trpc.editTask.useMutation();
+  const deleteTaskMutation = trpc.deleteTask.useMutation();
 
   const onAddTask = (s: Status) => {
     const newTask: TaskType<Status> = {
@@ -63,6 +64,7 @@ export default function TaskBoard() {
         [s]: [...state[s], newTask]
       };
     });
+    addTaskMutation.mutate(newTask);
   };
 
   function onEditTask(args: {
@@ -86,12 +88,22 @@ export default function TaskBoard() {
     const taskIndex = tasks.findIndex((t) => t.id === taskId);
     tasks[taskIndex] = task;
     setTasks([...tasks]);
+    editTaskMutation.mutate(task);
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (selectedTask && title) {
       onEditTask({ taskId: selectedTask.id, data: { title } });
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedTask) {
+      const taskIndex = tasks.findIndex((t) => t.id === selectedTask.id);
+      tasks.splice(taskIndex, 1);
+      setTasks([...tasks]);
+      deleteTaskMutation.mutate(selectedTask);
     }
   };
 
@@ -137,6 +149,9 @@ export default function TaskBoard() {
               />
               <input type="submit" value="Submit" />
             </form>
+            <div className="btn" onClick={handleDelete}>
+              Delete
+            </div>
           </div>
         </div>
       </div>
