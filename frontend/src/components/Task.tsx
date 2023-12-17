@@ -10,7 +10,7 @@ export default function Task(args: { task: TaskType<Status>; index: number }) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="bg-gray-200 rounded-lg p-2 transition duration-800 ease-out hover:bg-white mt-2"
+          className="bg-slate-100 rounded-lg p-2 mt-2 shadow-md"
         >
           <p>{task.title}</p>
         </div>

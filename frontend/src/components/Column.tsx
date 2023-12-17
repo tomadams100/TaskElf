@@ -21,8 +21,10 @@ export default function Column(args: Args) {
 
   return (
     <div className="w-1/3 p-4">
-      <div className="bg-gray-200 p-2">
-        <h2 className="text-lg font-semibold">{status}</h2>
+      <div className="bg-gray-200 p-2 rounded-lg">
+        <h2 className="text-lg font-semibold">
+          {status[0].toUpperCase() + status.slice(1)}
+        </h2>
         <Droppable droppableId={status}>
           {(provided) => (
             <div
@@ -48,10 +50,11 @@ export default function Column(args: Args) {
           )}
         </Droppable>
         <div
-          className="bg-blue-500 text-white rounded p-2 mt-2 cursor-pointer"
+          className="bg-transparent p-2 mt-2 text-gray-600 cursor-pointer rounded-lg hover:bg-gray-300
+        "
           onClick={handleAddTask}
         >
-          Add
+          Add a task
         </div>
       </div>
     </div>

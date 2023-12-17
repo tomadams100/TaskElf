@@ -4,6 +4,7 @@ import { DragDropContext } from 'react-beautiful-dnd';
 import * as dragAndDrop from '.././utils/dragAndDrop';
 import { Status, TaskType, ColumnType } from '../types';
 import { trpc } from '../trpc';
+import NavBar from '../components/NavBar';
 
 export default function TaskBoard() {
   const [tasks, setTasks] = useState<TaskType<Status>[]>([]);
@@ -104,7 +105,8 @@ export default function TaskBoard() {
   };
 
   return (
-    <>
+    <div className="bg-gradient-to-r from-rose-800 to-lime-800 h-screen">
+      <NavBar />
       <div className="drawer drawer-end">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content">
@@ -138,24 +140,29 @@ export default function TaskBoard() {
             aria-label="close sidebar"
             className="drawer-overlay"
           ></label>
-          <div className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-            <form onSubmit={handleSubmit}>
-              <label htmlFor="title">Title</label>
+          <div className="menu p-4 w-80 min-h-full bg-base-200 backdrop-blur bg-white/50 text-base-content space-y-5">
+            <h3 className="text-2xl">Edit Task</h3>
+            <form onSubmit={handleSubmit} className="space-y-5">
               <input
                 type="text"
                 id="title"
                 name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                className="input w-full max-w-xs"
               />
-              <input type="submit" value="Submit" />
+              <input
+                className="btn bg-green-500"
+                type="submit"
+                value="Submit"
+              />
             </form>
-            <div className="btn" onClick={handleDelete}>
+            <div className="btn bg-red-500" onClick={handleDelete}>
               Delete
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
