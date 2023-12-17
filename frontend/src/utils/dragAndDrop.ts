@@ -1,4 +1,4 @@
-import { ColumnType, Status, TaskType } from '../App';
+import { Status, TaskType, ColumnType } from '../types';
 import { DropResult } from 'react-beautiful-dnd';
 
 type Props = {

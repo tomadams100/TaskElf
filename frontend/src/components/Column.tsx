@@ -1,7 +1,7 @@
 import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import Task from './Task';
-import { Status, TaskType } from '../App';
+import { Status, TaskType } from '../types';
 interface Args {
   status: Status;
   tasks: TaskType<Status>[];

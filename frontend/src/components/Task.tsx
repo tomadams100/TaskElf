@@ -1,5 +1,5 @@
 import { Draggable } from 'react-beautiful-dnd';
-import { Status, TaskType } from '../App';
+import { Status, TaskType } from '../types';
 
 export default function Task(args: { task: TaskType<Status>; index: number }) {
   const { task, index } = args;
