@@ -1,7 +1,7 @@
 import { Draggable } from 'react-beautiful-dnd';
-import { TaskType } from '../App';
+import { Status, TaskType } from '../App';
 
-export default function Task(args: { task: TaskType; index: number }) {
+export default function Task(args: { task: TaskType<Status>; index: number }) {
   const { task, index } = args;
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -12,7 +12,7 @@ export default function Task(args: { task: TaskType; index: number }) {
           {...provided.dragHandleProps}
           className="bg-gray-200 rounded-lg p-2 transition duration-800 ease-out hover:bg-white mt-2"
         >
-          <p>{task.content}</p>
+          <p>{task.title}</p>
         </div>
       )}
     </Draggable>

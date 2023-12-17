@@ -1,42 +1,42 @@
 import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import Task from './Task';
-import { ColumnType, TaskType } from '../App';
+import { Status, TaskType } from '../App';
 interface Args {
-  col: ColumnType[keyof ColumnType];
-  onAddTask: (colId: string) => void;
+  status: Status;
+  tasks: TaskType<Status>[];
+  onAddTask: (s: Status) => void;
   setSelectedTask: React.Dispatch<
-    React.SetStateAction<Record<string, TaskType> | undefined>
+    React.SetStateAction<TaskType<Status> | undefined>
   >;
   setTitle: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
 export default function Column(args: Args) {
-  const { col, onAddTask, setSelectedTask, setTitle } = args;
-  const { id, list } = col;
+  const { status, tasks, onAddTask, setSelectedTask, setTitle } = args;
 
   const handleAddTask: React.MouseEventHandler<HTMLDivElement> = (event) => {
-    onAddTask(id);
+    onAddTask(status);
   };
 
   return (
     <div className="w-1/3 p-4">
       <div className="bg-gray-200 p-2">
-        <h2 className="text-lg font-semibold">{id}</h2>
-        <Droppable droppableId={id}>
+        <h2 className="text-lg font-semibold">{status}</h2>
+        <Droppable droppableId={status}>
           {(provided) => (
             <div
               className="p-4"
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {list.map((task, index) => {
+              {tasks.map((task, index) => {
                 return (
                   <label
                     htmlFor="my-drawer-4"
                     onClick={() => {
-                      setSelectedTask({ [id]: task });
-                      setTitle(task.content);
+                      setSelectedTask(task);
+                      setTitle(task.title);
                     }}
                   >
                     <Task key={task.id} task={task} index={index} />

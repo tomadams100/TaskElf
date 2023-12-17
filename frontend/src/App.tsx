@@ -3,84 +3,108 @@ import Column from './components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import * as dragAndDrop from './utils/dragAndDrop';
 
-export type TaskType = {
+export type TaskType<S extends Status> = {
   id: string;
-  content: string;
+  status: S;
+  title: string;
+  description: string;
+  assignee: string | null;
 };
 
-enum ColumnTitle {
+export enum Status {
   todo = 'todo',
   doing = 'doing',
   done = 'done'
 }
 
 export type ColumnType = {
-  [key in ColumnTitle]: {
-    id: string;
-    list: TaskType[];
-  };
+  [key in Status]: TaskType<key>[];
 };
 
+const tasksFromDb: TaskType<Status>[] = [
+  {
+    id: '1',
+    status: Status.todo,
+    title: 'Task 1',
+    description: 'This is task 1',
+    assignee: null
+  },
+  {
+    id: '2',
+    status: Status.doing,
+    title: 'Task 2',
+    description: 'This is task 2',
+    assignee: null
+  },
+  {
+    id: '3',
+    status: Status.done,
+    title: 'Task 3',
+    description: 'This is task 3',
+    assignee: null
+  }
+];
+
 function App() {
-  const initialColumns: ColumnType = {
-    todo: {
-      id: 'todo',
-      list: [
-        { id: 'item-1', content: 'Task 1' },
-        { id: 'item-2', content: 'Task 2' },
-        { id: 'item-3', content: 'Task 3' }
-      ]
-    },
-    doing: {
-      id: 'doing',
-      list: []
-    },
-    done: {
-      id: 'done',
-      list: []
-    }
-  };
-  const [columns, setColumns] = useState(initialColumns);
-  const [selectedTask, setSelectedTask] = useState<Record<string, TaskType>>();
+  const [tasks, setTasks] = useState<TaskType<Status>[]>(tasksFromDb);
+  const [columns, setColumns] = useState<ColumnType>({
+    [Status.todo]: tasks.filter(
+      (t) => t.status === Status.todo
+    ) as TaskType<Status.todo>[],
+    [Status.doing]: tasks.filter(
+      (t) => t.status === Status.doing
+    ) as TaskType<Status.doing>[],
+    [Status.done]: tasks.filter(
+      (t) => t.status === Status.done
+    ) as TaskType<Status.done>[]
+  });
+  const [selectedTask, setSelectedTask] = useState<TaskType<Status>>();
   const [title, setTitle] = useState<string>();
 
-  const onAddTask = (colId: string) => {
-    const newTask = {
+  const onAddTask = (s: Status) => {
+    const newTask: TaskType<Status> = {
       id: Math.random().toString(),
-      content: 'New Task'
+      status: s,
+      assignee: null,
+      description: '',
+      title: 'New Task'
     };
-    setColumns((state) => ({
-      ...state,
-      [colId]: {
-        id: colId,
-        list: [...columns[colId as keyof typeof columns].list, newTask]
-      }
-    }));
+    setTasks((state) => [...state, newTask]);
+    setColumns((state) => {
+      return {
+        ...state,
+        [s]: [...state[s], newTask]
+      };
+    });
   };
 
-  const onEditTask = (colId: string, taskId: string, newContent: string) => {
-    console.log({
-      colId,
-      taskId,
-      newContent
-    });
-    setColumns((state) => ({
-      ...state,
-      [colId]: {
-        id: colId,
-        list: columns[colId as keyof typeof columns].list.map((task) =>
-          task.id === taskId ? { ...task, content: newContent } : task
-        )
-      }
-    }));
-  };
+  function onEditTask(args: {
+    taskId: string;
+    data: Partial<TaskType<Status>>;
+  }) {
+    const { taskId, data } = args;
+
+    const task = tasks.find((t) => t.id === taskId);
+
+    if (!task) return;
+
+    if (data.title) {
+      task.title = data.title;
+    } else if (data.description) {
+      task.description = data.description;
+    } else if (data.assignee) {
+      task.assignee = data.assignee;
+    }
+
+    const taskIndex = tasks.findIndex((t) => t.id === taskId);
+    tasks[taskIndex] = task;
+    setTasks([...tasks]);
+  }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (selectedTask && title) {
-      const colId = Object.keys(selectedTask)[0];
-      const taskId = selectedTask[colId].id;
-      onEditTask(colId, taskId, title);
+      onEditTask({ taskId: selectedTask.id, data: { title } });
     }
   };
 
@@ -95,10 +119,11 @@ function App() {
             }
           >
             <div className="flex justify-center mt-10">
-              {Object.values(columns).map((col) => (
+              {Object.values(Status).map((Status) => (
                 <Column
-                  col={col}
-                  key={col.id}
+                  status={Status}
+                  tasks={columns[Status]}
+                  key={Status}
                   onAddTask={onAddTask}
                   setSelectedTask={setSelectedTask}
                   setTitle={setTitle}
@@ -123,8 +148,6 @@ function App() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
-              {/* <p>{selectedTask?.[0].content} is selected</p> */}
-
               <input type="submit" value="Submit" />
             </form>
           </div>
