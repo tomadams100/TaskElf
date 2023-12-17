@@ -16,7 +16,8 @@ export const TaskSchema = z.object({
   status: z.nativeEnum(Status),
   title: z.string(),
   description: z.string(),
-  assignee: z.string().nullable()
+  assignee: z.string().nullable(),
+  position: z.number()
 });
 
 export type TaskType<T extends Status> = z.infer<typeof TaskSchema> & {
@@ -28,7 +29,8 @@ export const TaskSchemaMongoose = new Schema({
   status: { type: String, required: true },
   title: { type: String, required: true },
   description: { type: String, default: '' },
-  assignee: { type: String, default: null }
+  assignee: { type: String, default: null },
+  position: { type: Number, required: true }
 });
 
 export const TaskModel = mongoose.model<Document & TaskType<Status>>(

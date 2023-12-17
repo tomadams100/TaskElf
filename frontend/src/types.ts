@@ -4,6 +4,7 @@ export type TaskType<S extends Status> = {
   title: string;
   description: string;
   assignee: string | null;
+  position: number;
 };
 
 export enum Status {

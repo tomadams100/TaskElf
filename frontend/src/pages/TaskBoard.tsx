@@ -1,36 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Column from '.././components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import * as dragAndDrop from '.././utils/dragAndDrop';
 import { Status, TaskType, ColumnType } from '../types';
 import { trpc } from '../trpc';
 
-const tasksFromDb: TaskType<Status>[] = [
-  {
-    id: '1',
-    status: Status.todo,
-    title: 'Task 1',
-    description: 'This is task 1',
-    assignee: null
-  },
-  {
-    id: '2',
-    status: Status.doing,
-    title: 'Task 2',
-    description: 'This is task 2',
-    assignee: null
-  },
-  {
-    id: '3',
-    status: Status.done,
-    title: 'Task 3',
-    description: 'This is task 3',
-    assignee: null
-  }
-];
-
 export default function TaskBoard() {
-  const [tasks, setTasks] = useState<TaskType<Status>[]>(tasksFromDb);
+  const [tasks, setTasks] = useState<TaskType<Status>[]>([]);
   const [columns, setColumns] = useState<ColumnType>({
     [Status.todo]: tasks.filter(
       (t) => t.status === Status.todo
@@ -48,6 +24,25 @@ export default function TaskBoard() {
   const addTaskMutation = trpc.addTask.useMutation();
   const editTaskMutation = trpc.editTask.useMutation();
   const deleteTaskMutation = trpc.deleteTask.useMutation();
+  const getTasksQuery = trpc.getTasks.useQuery();
+
+  useEffect(() => {
+    const fetchedTasks = getTasksQuery.data as TaskType<Status>[];
+    if (fetchedTasks) {
+      setTasks(fetchedTasks);
+      setColumns({
+        [Status.todo]: fetchedTasks
+          .filter((t) => t.status === Status.todo)
+          .sort((a, b) => a.position - b.position) as TaskType<Status.todo>[],
+        [Status.doing]: fetchedTasks
+          .filter((t) => t.status === Status.doing)
+          .sort((a, b) => a.position - b.position) as TaskType<Status.doing>[],
+        [Status.done]: fetchedTasks
+          .filter((t) => t.status === Status.done)
+          .sort((a, b) => a.position - b.position) as TaskType<Status.done>[]
+      });
+    }
+  }, [getTasksQuery.data, deleteTaskMutation.isSuccess]);
 
   const onAddTask = (s: Status) => {
     const newTask: TaskType<Status> = {
@@ -55,7 +50,8 @@ export default function TaskBoard() {
       status: s,
       assignee: null,
       description: '',
-      title: 'New Task'
+      title: 'New Task',
+      position: columns[s].length
     };
     setTasks((state) => [...state, newTask]);
     setColumns((state) => {
@@ -114,7 +110,12 @@ export default function TaskBoard() {
         <div className="drawer-content">
           <DragDropContext
             onDragEnd={(e) =>
-              dragAndDrop.onDragEnd({ columns, setColumns, dropResult: e })
+              dragAndDrop.onDragEnd({
+                columns,
+                setColumns,
+                dropResult: e,
+                editTaskMutation
+              })
             }
           >
             <div className="flex justify-center mt-10">

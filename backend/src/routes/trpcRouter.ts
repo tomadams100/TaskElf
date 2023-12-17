@@ -32,5 +32,9 @@ export const tRCPRouter = trpcRouter({
       model: TaskModel
     });
     return task;
+  }),
+  getTasks: publicProcedure.query(async () => {
+    const tasks = await dbSvc.list({ model: TaskModel });
+    return tasks;
   })
 });

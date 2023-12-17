@@ -1,3 +1,4 @@
+import { trpc } from '../trpc';
 import { Status, TaskType, ColumnType } from '../types';
 import { DropResult } from 'react-beautiful-dnd';
 
@@ -5,10 +6,11 @@ type Props = {
   dropResult: DropResult;
   columns: ColumnType;
   setColumns: React.Dispatch<React.SetStateAction<ColumnType>>;
+  editTaskMutation: ReturnType<typeof trpc.editTask.useMutation>;
 };
 
 export const onDragEnd = (props: Props) => {
-  const { dropResult, columns, setColumns } = props;
+  const { dropResult, columns, setColumns, editTaskMutation } = props;
   const { source, destination } = dropResult;
   if (!destination) return null;
 
@@ -22,10 +24,16 @@ export const onDragEnd = (props: Props) => {
   const start = columns[sourceDroppableId as Status];
   const end = columns[destDroppableId as Status];
 
+  const movedTask = start[sourceIndex];
   if (start === end) {
     const newStartTasks = moveTask(start, sourceIndex, destIndex);
-
     setColumns((state) => ({ ...state, [sourceDroppableId]: newStartTasks }));
+    for (const task of newStartTasks) {
+      editTaskMutation.mutate({
+        ...task,
+        position: newStartTasks.indexOf(task)
+      });
+    }
   } else {
     const { newStartTasks, newEndTasks } = moveTaskBetweenColumns(
       start,
@@ -39,6 +47,18 @@ export const onDragEnd = (props: Props) => {
       [sourceDroppableId]: newStartTasks,
       [destDroppableId]: newEndTasks
     }));
+    for (const task of newStartTasks) {
+      editTaskMutation.mutate({
+        ...task,
+        position: newStartTasks.indexOf(task)
+      });
+    }
+    for (const task of newEndTasks) {
+      editTaskMutation.mutate({
+        ...task,
+        position: newEndTasks.indexOf(task)
+      });
+    }
   }
 
   return null;
@@ -49,12 +69,12 @@ const moveTask = (
   sourceIndex: number,
   destIndex: number
 ) => {
-  const movedItem = tasks[sourceIndex];
+  const movedTask = tasks[sourceIndex];
   const newStartTasks = [
     ...tasks.slice(0, sourceIndex),
     ...tasks.slice(sourceIndex + 1)
   ];
-  newStartTasks.splice(destIndex, 0, movedItem);
+  newStartTasks.splice(destIndex, 0, movedTask);
   return newStartTasks;
 };
 
