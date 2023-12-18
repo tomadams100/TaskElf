@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
+import * as uuid from 'uuid';
 import Column from '.././components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import * as dragAndDrop from '.././utils/dragAndDrop';
-import { Status, TaskType, ColumnType } from '../types';
+import { Status, TaskType, ColumnType, ContactsType } from '../types';
 import { trpc } from '../trpc';
 import NavBar from '../components/NavBar';
 
 export default function TaskBoard() {
   const [tasks, setTasks] = useState<TaskType<Status>[]>([]);
+  const [contacts, setContacts] = useState<ContactsType[]>([]);
   const [columns, setColumns] = useState<ColumnType>({
     [Status.todo]: tasks.filter(
       (t) => t.status === Status.todo
@@ -21,11 +23,19 @@ export default function TaskBoard() {
   });
   const [selectedTask, setSelectedTask] = useState<TaskType<Status>>();
   const [title, setTitle] = useState<string>();
+  const [description, setDescription] = useState<string>();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<ContactsType[]>([]);
+  const [selectedContact, setSelectedContact] = useState<ContactsType | null>(
+    null
+  );
 
   const addTaskMutation = trpc.addTask.useMutation();
   const editTaskMutation = trpc.editTask.useMutation();
   const deleteTaskMutation = trpc.deleteTask.useMutation();
   const getTasksQuery = trpc.getTasks.useQuery();
+  const getContactsQuery = trpc.getContacts.useQuery();
+  const addContactMutation = trpc.addContact.useMutation();
 
   useEffect(() => {
     const fetchedTasks = getTasksQuery.data as TaskType<Status>[];
@@ -45,14 +55,29 @@ export default function TaskBoard() {
     }
   }, [getTasksQuery.data, deleteTaskMutation.isSuccess]);
 
+  useEffect(() => {
+    const fetchedContacts = getContactsQuery.data as ContactsType[];
+    if (fetchedContacts) {
+      setContacts(fetchedContacts);
+    }
+  }, [getContactsQuery.data, addContactMutation.isSuccess]);
+
+  useEffect(() => {
+    const results = contacts.filter((contact) =>
+      contact.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setSearchResults(results);
+  }, [searchTerm, contacts]);
+
   const onAddTask = (s: Status) => {
     const newTask: TaskType<Status> = {
-      id: Math.random().toString(),
+      id: uuid.v4(),
       status: s,
       assignee: null,
       description: '',
       title: 'New Task',
-      position: columns[s].length
+      position: columns[s].length,
+      createdAt: new Date().toISOString()
     };
     setTasks((state) => [...state, newTask]);
     setColumns((state) => {
@@ -76,9 +101,11 @@ export default function TaskBoard() {
 
     if (data.title) {
       task.title = data.title;
-    } else if (data.description) {
+    }
+    if (data.description) {
       task.description = data.description;
-    } else if (data.assignee) {
+    }
+    if (data.assignee) {
       task.assignee = data.assignee;
     }
 
@@ -90,8 +117,30 @@ export default function TaskBoard() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (selectedTask && title) {
-      onEditTask({ taskId: selectedTask.id, data: { title } });
+    if (selectedTask) {
+      onEditTask({
+        taskId: selectedTask.id,
+        data: {
+          ...selectedTask,
+          title,
+          description,
+          assignee:
+            selectedContact?.email === searchTerm
+              ? selectedContact
+              : {
+                  email: searchTerm,
+                  firstName: '',
+                  lastName: ''
+                }
+        }
+      });
+    }
+    if (!contacts.find((contact) => contact.email === searchTerm)) {
+      addContactMutation.mutate({
+        email: searchTerm,
+        firstName: '',
+        lastName: ''
+      });
     }
   };
 
@@ -129,6 +178,9 @@ export default function TaskBoard() {
                   onAddTask={onAddTask}
                   setSelectedTask={setSelectedTask}
                   setTitle={setTitle}
+                  setDescription={setDescription}
+                  setSelectedContact={setSelectedContact}
+                  setSearchTerm={setSearchTerm}
                 />
               ))}
             </div>
@@ -143,6 +195,9 @@ export default function TaskBoard() {
           <div className="menu p-4 w-80 min-h-full bg-base-200 backdrop-blur bg-white/50 text-base-content space-y-5">
             <h3 className="text-2xl">Edit Task</h3>
             <form onSubmit={handleSubmit} className="space-y-5">
+              <label htmlFor="title" className="italic text-sm">
+                Title
+              </label>
               <input
                 type="text"
                 id="title"
@@ -151,11 +206,52 @@ export default function TaskBoard() {
                 onChange={(e) => setTitle(e.target.value)}
                 className="input w-full max-w-xs"
               />
-              <input
-                className="btn bg-green-500"
-                type="submit"
-                value="Submit"
+              <div className="divider" />
+              <label htmlFor="description" className="italic text-sm">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                }}
+                className="textarea textarea-bordered textarea-md w-full max-w-xs"
+                maxLength={100}
               />
+              <div className="divider" />
+              <label htmlFor="assignee" className="italic text-sm">
+                Assignee
+              </label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm &&
+                searchResults.length > 0 &&
+                !searchResults.find(
+                  (contact) => contact.email === searchTerm
+                ) && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded">
+                    {searchResults.map((contact) => (
+                      <div
+                        key={contact.email}
+                        className="p-2 hover:bg-gray-100"
+                        onClick={() => {
+                          setSelectedContact(contact);
+                          setSearchTerm(contact.email);
+                        }}
+                      >
+                        {contact.email}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              <input className="btn bg-green-500" type="submit" value="Save" />
             </form>
             <div className="btn bg-red-500" onClick={handleDelete}>
               Delete

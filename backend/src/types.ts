@@ -16,8 +16,15 @@ export const TaskSchema = z.object({
   status: z.nativeEnum(Status),
   title: z.string(),
   description: z.string(),
-  assignee: z.string().nullable(),
-  position: z.number()
+  assignee: z
+    .object({
+      firstName: z.string(),
+      lastName: z.string(),
+      email: z.string()
+    })
+    .nullable(),
+  position: z.number(),
+  createdAt: z.string()
 });
 
 export type TaskType<T extends Status> = z.infer<typeof TaskSchema> & {
@@ -29,11 +36,36 @@ export const TaskSchemaMongoose = new Schema({
   status: { type: String, required: true },
   title: { type: String, required: true },
   description: { type: String, default: '' },
-  assignee: { type: String, default: null },
-  position: { type: Number, required: true }
+  assignee:
+    {
+      firstName: { type: String, required: false, default: '' },
+      lastName: { type: String, required: false, default: '' },
+      email: { type: String, required: false, default: '' }
+    } || null,
+  position: { type: Number, required: true },
+  createdAt: { type: String, default: `${Date.now}` }
 });
 
 export const TaskModel = mongoose.model<Document & TaskType<Status>>(
   'Task',
   TaskSchemaMongoose
+);
+
+export const ContactsSchema = z.object({
+  email: z.string(),
+  firstName: z.string(),
+  lastName: z.string()
+});
+
+export type ContactsType = z.infer<typeof ContactsSchema>;
+
+export const ContactsSchemaMongoose = new Schema({
+  email: { type: String, required: true },
+  firstName: { type: String, required: false, default: '' },
+  lastName: { type: String, required: false, default: '' }
+});
+
+export const ContactsModel = mongoose.model<Document & ContactsType>(
+  'Contact',
+  ContactsSchemaMongoose
 );

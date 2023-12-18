@@ -21,14 +21,11 @@ export class DbSvc {
 
   public async get<D extends Document>(args: {
     model: Model<D>;
-    taskId: string;
-    filter?: Partial<mongoose.ObtainDocumentType<D>>;
+    id: string;
   }): Promise<D | null> {
-    const { taskId, filter } = args;
+    const { id } = args;
     try {
-      return !filter
-        ? await args.model.findOne({ id: taskId })
-        : await args.model.findOne({ taskId, filter });
+      return await args.model.findOne({ id });
     } catch (error) {
       console.log('error', error);
       return null;
@@ -37,13 +34,9 @@ export class DbSvc {
 
   public async list<D extends Document>(args: {
     model: Model<D>;
-    filter?: Partial<mongoose.ObtainDocumentType<D>>;
   }): Promise<D[]> {
-    const { filter } = args;
     try {
-      return !filter
-        ? await args.model.find()
-        : await args.model.find({ filter });
+      return await args.model.find({});
     } catch (error) {
       console.log('error', error);
       return [];

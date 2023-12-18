@@ -3,8 +3,9 @@ export type TaskType<S extends Status> = {
   status: S;
   title: string;
   description: string;
-  assignee: string | null;
+  assignee: ContactsType | null;
   position: number;
+  createdAt: string;
 };
 
 export enum Status {
@@ -15,4 +16,10 @@ export enum Status {
 
 export type ColumnType = {
   [key in Status]: TaskType<key>[];
+};
+
+export type ContactsType = {
+  email: string;
+  firstName: string;
+  lastName: string;
 };

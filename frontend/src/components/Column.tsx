@@ -2,6 +2,7 @@ import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import Task from './Task';
 import { Status, TaskType } from '../types';
+import { ContactsType } from '../../../backend/src/types';
 interface Args {
   status: Status;
   tasks: TaskType<Status>[];
@@ -10,10 +11,22 @@ interface Args {
     React.SetStateAction<TaskType<Status> | undefined>
   >;
   setTitle: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setDescription: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setSelectedContact: React.Dispatch<React.SetStateAction<ContactsType | null>>;
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function Column(args: Args) {
-  const { status, tasks, onAddTask, setSelectedTask, setTitle } = args;
+  const {
+    status,
+    tasks,
+    onAddTask,
+    setSelectedTask,
+    setTitle,
+    setDescription,
+    setSelectedContact,
+    setSearchTerm
+  } = args;
 
   const handleAddTask: React.MouseEventHandler<HTMLDivElement> = (event) => {
     onAddTask(status);
@@ -39,6 +52,9 @@ export default function Column(args: Args) {
                     onClick={() => {
                       setSelectedTask(task);
                       setTitle(task.title);
+                      setDescription(task.description);
+                      setSelectedContact(task.assignee);
+                      setSearchTerm(task.assignee?.email || '');
                     }}
                   >
                     <Task key={task.id} task={task} index={index} />
