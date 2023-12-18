@@ -1,7 +1,7 @@
 
 # Task Elf
 
-Lot's to do before Christmas? Feeling like one of Santa's elves? Don't worry, we've got you covered! Task Elf is here to help 🎄
+Lots to do before Christmas? Feeling like one of Santa's elves? Don't worry, we've got you covered! Task Elf is here to help 🎄
 
 With Task Elf you can easily manage tasks, edit them, and assign them to people.
 
