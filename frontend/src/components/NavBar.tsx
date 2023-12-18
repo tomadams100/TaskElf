@@ -22,7 +22,9 @@ export default function NavBar() {
         </div>
       </div>
       <div className="navbar-center">
-        <a className="btn btn-ghost text-4xl font-pacifico">Task Elf</a>
+        <a className="btn btn-ghost text-4xl text-blue-black font-bold font-pacifico">
+          Task Elf
+        </a>
       </div>
       <div className="navbar-end">
         <button className="btn btn-ghost btn-circle">

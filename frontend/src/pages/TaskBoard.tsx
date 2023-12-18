@@ -3,9 +3,16 @@ import * as uuid from 'uuid';
 import Column from '.././components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import * as dragAndDrop from '.././utils/dragAndDrop';
-import { Status, TaskType, ColumnType, ContactsType } from '../types';
+import {
+  Status,
+  TaskType,
+  ColumnType,
+  ContactsType,
+  PresentType
+} from '../types';
 import { trpc } from '../trpc';
 import NavBar from '../components/NavBar';
+import Present from '../components/Present';
 
 export default function TaskBoard() {
   const [tasks, setTasks] = useState<TaskType<Status>[]>([]);
@@ -29,6 +36,22 @@ export default function TaskBoard() {
   const [selectedContact, setSelectedContact] = useState<ContactsType | null>(
     null
   );
+  const [presents, setPresents] = useState<PresentType[]>([]);
+  function addPresent() {
+    const randomPhotoIndex = Math.floor(Math.random() * 3);
+    const randomSize = Math.floor(Math.random() * 45 + 45);
+    const newPresent: PresentType = {
+      id: Date.now(),
+      left: `${Math.random() * 90}vw`,
+      rotation: `${Math.random() * 150 - 75}deg`,
+      img: ['./present.png', './presentBlue.png', './presentRed.png'][
+        randomPhotoIndex
+      ],
+      size: `${randomSize}px`
+    };
+
+    setPresents((prevPresents) => [...prevPresents, newPresent]);
+  }
 
   const addTaskMutation = trpc.addTask.useMutation();
   const editTaskMutation = trpc.editTask.useMutation();
@@ -52,6 +75,11 @@ export default function TaskBoard() {
           .filter((t) => t.status === Status.done)
           .sort((a, b) => a.position - b.position) as TaskType<Status.done>[]
       });
+
+      setPresents([]);
+      for (const task of fetchedTasks) {
+        addPresent();
+      }
     }
   }, [getTasksQuery.data, deleteTaskMutation.isSuccess]);
 
@@ -87,6 +115,7 @@ export default function TaskBoard() {
       };
     });
     addTaskMutation.mutate(newTask);
+    addPresent();
   };
 
   function onEditTask(args: {
@@ -142,6 +171,12 @@ export default function TaskBoard() {
         lastName: ''
       });
     }
+    const drawerCheckbox = document.getElementById(
+      'my-drawer-4'
+    ) as HTMLInputElement;
+    if (drawerCheckbox) {
+      drawerCheckbox.checked = false;
+    }
   };
 
   const handleDelete = () => {
@@ -150,6 +185,12 @@ export default function TaskBoard() {
       tasks.splice(taskIndex, 1);
       setTasks([...tasks]);
       deleteTaskMutation.mutate(selectedTask);
+    }
+    const drawerCheckbox = document.getElementById(
+      'my-drawer-4'
+    ) as HTMLInputElement;
+    if (drawerCheckbox) {
+      drawerCheckbox.checked = false;
     }
   };
 
@@ -186,7 +227,7 @@ export default function TaskBoard() {
             </div>
           </DragDropContext>
         </div>
-        <div className="drawer-side">
+        <div className="drawer-side z-10">
           <label
             htmlFor="my-drawer-4"
             aria-label="close sidebar"
@@ -253,12 +294,17 @@ export default function TaskBoard() {
                 )}
               <input className="btn bg-green-500" type="submit" value="Save" />
             </form>
-            <div className="btn bg-red-500" onClick={handleDelete}>
+            <div
+              className="btn bg-red-500"
+              onClick={handleDelete}
+              aria-label="close sidebar"
+            >
               Delete
             </div>
           </div>
         </div>
       </div>
+      <Present presents={presents} />
     </div>
   );
 }

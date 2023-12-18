@@ -23,3 +23,11 @@ export type ContactsType = {
   firstName: string;
   lastName: string;
 };
+
+export type PresentType = {
+  id: number;
+  left: string;
+  rotation: string;
+  img: string;
+  size: string;
+};
