@@ -4,6 +4,9 @@ import Task from './Task';
 import { ColumnType, PresentType, Status, TaskType } from '../types';
 import { ContactsType } from '../../../backend/src/types';
 import * as handlers from '../pages/handlers';
+import { trpc } from '../trpc';
+import * as uuid from 'uuid';
+import { useAuth0 } from '@auth0/auth0-react';
 interface Args {
   status: Status;
   tasks: TaskType<Status>[];
@@ -14,7 +17,6 @@ interface Args {
   setDescription: React.Dispatch<React.SetStateAction<string | undefined>>;
   setSelectedContact: React.Dispatch<React.SetStateAction<ContactsType | null>>;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  addTaskMutation: any;
   setPresents: React.Dispatch<React.SetStateAction<PresentType[]>>;
   setTasks: React.Dispatch<React.SetStateAction<TaskType<Status>[]>>;
   setColumns: React.Dispatch<React.SetStateAction<ColumnType>>;
@@ -29,22 +31,12 @@ export default function Column(args: Args) {
     setDescription,
     setSelectedContact,
     setSearchTerm,
-    addTaskMutation,
     setPresents,
     setTasks,
     setColumns
   } = args;
-
-  const handleAddTask: React.MouseEventHandler<HTMLDivElement> = (event) => {
-    handlers.onAddTask({
-      s: status,
-      columnsLength: tasks.length,
-      setTasks,
-      setColumns,
-      addTaskMutation,
-      setPresents
-    });
-  };
+  const { user } = useAuth0();
+  const addTaskMutation = trpc.addTask.useMutation();
 
   return (
     <div className="w-1/3 p-4">
@@ -82,7 +74,28 @@ export default function Column(args: Args) {
         <div
           className="bg-transparent p-2 mt-2 text-gray-600 cursor-pointer rounded-lg hover:bg-gray-300
         "
-          onClick={handleAddTask}
+          onClick={() => {
+            const newTask: TaskType<Status> = {
+              id: uuid.v4(),
+              status,
+              assignee: null,
+              description: '',
+              title: 'New Task',
+              position: tasks.length,
+              createdAt: new Date().toISOString(),
+              userId: user!.sub!
+            };
+            setTasks((state) => [...state, newTask]);
+            setColumns((state) => {
+              return {
+                ...state,
+                [status]: [...state[status], newTask]
+              };
+            });
+
+            addTaskMutation.mutate(newTask);
+            handlers.addPresent({ setPresents });
+          }}
         >
           Add a task
         </div>

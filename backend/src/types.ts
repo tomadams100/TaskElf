@@ -13,6 +13,7 @@ export type ColumnType = {
 
 export const TaskSchema = z.object({
   id: z.string(),
+  userId: z.string(),
   status: z.nativeEnum(Status),
   title: z.string(),
   description: z.string(),
@@ -43,7 +44,8 @@ export const TaskSchemaMongoose = new Schema({
       email: { type: String, required: false, default: '' }
     } || null,
   position: { type: Number, required: true },
-  createdAt: { type: String, default: `${Date.now}` }
+  createdAt: { type: String, default: `${Date.now}` },
+  userId: { type: String, required: true }
 });
 
 export const TaskModel = mongoose.model<Document & TaskType<Status>>(

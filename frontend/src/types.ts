@@ -6,6 +6,7 @@ export type TaskType<S extends Status> = {
   assignee: ContactsType | null;
   position: number;
   createdAt: string;
+  userId: string;
 };
 
 export enum Status {

@@ -1,17 +1,13 @@
+import { trpc } from '../trpc';
 import { ContactsType, Status, TaskType } from '../types';
-import * as handlers from '../pages/handlers';
 
 type Args = {
   selectedTask: TaskType<Status> | null;
   setTitle: React.Dispatch<React.SetStateAction<string | undefined>>;
   setDescription: React.Dispatch<React.SetStateAction<string | undefined>>;
-  selectedContact: ContactsType | null;
   setSelectedContact: React.Dispatch<React.SetStateAction<ContactsType | null>>;
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  addContactMutation: any;
-  editTaskMutation: any;
-  deleteTaskMutation: any;
   setTasks: React.Dispatch<React.SetStateAction<TaskType<Status>[]>>;
   tasks: TaskType<Status>[];
   contacts: ContactsType[];
@@ -27,18 +23,17 @@ export default function EditPanel(args: Args) {
     title,
     description,
     setDescription,
-    selectedContact,
     setSelectedContact,
     searchTerm,
     setSearchTerm,
-    addContactMutation,
     searchResults,
-    editTaskMutation,
-    deleteTaskMutation,
     setTasks,
     tasks,
     contacts
   } = args;
+  const editTaskMutation = trpc.editTask.useMutation();
+  const addContactMutation = trpc.addContact.useMutation();
+  const deleteTaskMutation = trpc.deleteTask.useMutation();
   return (
     <>
       <label
@@ -49,21 +44,41 @@ export default function EditPanel(args: Args) {
       <div className="menu p-4 w-80 min-h-full bg-base-200 backdrop-blur bg-white/50 text-base-content space-y-5">
         <h3 className="text-2xl">Edit Task</h3>
         <form
-          onSubmit={(e) =>
-            handlers.handleSubmit({
-              addContactMutation,
-              editTaskMutation,
-              selectedTask: selectedTask ?? null,
-              selectedContact,
-              title: title ?? '',
-              contacts,
-              description: description ?? '',
-              e,
-              searchTerm,
-              setTasks,
-              tasks
-            })
-          }
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (selectedTask) {
+              const task = tasks.find((t) => t.id === selectedTask.id);
+
+              if (!task) return;
+
+              if (title) {
+                task.title = title;
+              }
+              if (description) {
+                task.description = description;
+              }
+
+              const taskIndex = tasks.findIndex(
+                (t) => t.id === selectedTask.id
+              );
+              tasks[taskIndex] = task;
+              setTasks([...tasks]);
+              editTaskMutation.mutate(task);
+            }
+            if (!contacts.find((contact) => contact.email === searchTerm)) {
+              addContactMutation.mutate({
+                email: searchTerm,
+                firstName: '',
+                lastName: ''
+              });
+            }
+            const drawerCheckbox = document.getElementById(
+              'my-drawer-4'
+            ) as HTMLInputElement;
+            if (drawerCheckbox) {
+              drawerCheckbox.checked = false;
+            }
+          }}
           className="space-y-5"
         >
           <label htmlFor="title" className="italic text-sm">
@@ -124,14 +139,22 @@ export default function EditPanel(args: Args) {
         </form>
         <div
           className="btn bg-red-500"
-          onClick={() =>
-            handlers.handleDelete({
-              selectedTask: selectedTask ?? null,
-              deleteTaskMutation,
-              setTasks,
-              tasks
-            })
-          }
+          onClick={() => {
+            if (selectedTask) {
+              const taskIndex = tasks.findIndex(
+                (t) => t.id === selectedTask.id
+              );
+              tasks.splice(taskIndex, 1);
+              setTasks([...tasks]);
+              deleteTaskMutation.mutate(selectedTask);
+            }
+            const drawerCheckbox = document.getElementById(
+              'my-drawer-4'
+            ) as HTMLInputElement;
+            if (drawerCheckbox) {
+              drawerCheckbox.checked = false;
+            }
+          }}
           aria-label="close sidebar"
         >
           Delete

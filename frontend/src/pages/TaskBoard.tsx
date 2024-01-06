@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import Column from '.././components/Column';
 import { DragDropContext } from 'react-beautiful-dnd';
 import * as dragAndDrop from '.././utils/dragAndDrop';
@@ -16,6 +17,7 @@ import * as handlers from './handlers';
 import EditPanel from '../components/EditPanel';
 
 export default function TaskBoard() {
+  const { isLoading, user } = useAuth0();
   const [tasks, setTasks] = useState<TaskType<Status>[]>([]);
   const [contacts, setContacts] = useState<ContactsType[]>([]);
   const [columns, setColumns] = useState<ColumnType>({
@@ -39,11 +41,10 @@ export default function TaskBoard() {
   );
   const [presents, setPresents] = useState<PresentType[]>([]);
 
-  const addTaskMutation = trpc.addTask.useMutation();
   const editTaskMutation = trpc.editTask.useMutation();
   const deleteTaskMutation = trpc.deleteTask.useMutation();
-  const getTasksQuery = trpc.getTasks.useQuery();
-  const getContactsQuery = trpc.getContacts.useQuery();
+  const getTasksQuery = trpc.getTasks.useQuery({ userId: user!.sub! });
+  const getContactsQuery = trpc.getContacts.useQuery({ userId: user!.sub! });
   const addContactMutation = trpc.addContact.useMutation();
 
   useEffect(() => {
@@ -83,6 +84,10 @@ export default function TaskBoard() {
     setSearchResults(results);
   }, [searchTerm, contacts]);
 
+  if (isLoading) {
+    return <div>Loading ...</div>;
+  }
+
   return (
     <div className="bg-gradient-to-r from-rose-800 to-lime-800 h-screen">
       <NavBar />
@@ -111,7 +116,6 @@ export default function TaskBoard() {
                   setSelectedContact={setSelectedContact}
                   setSearchTerm={setSearchTerm}
                   setPresents={setPresents}
-                  addTaskMutation={addTaskMutation}
                   setColumns={setColumns}
                   setTasks={setTasks}
                 />
@@ -121,14 +125,10 @@ export default function TaskBoard() {
         </div>
         <div className="drawer-side z-10">
           <EditPanel
-            addContactMutation={addContactMutation}
             contacts={contacts}
-            deleteTaskMutation={deleteTaskMutation}
             description={description ?? ''}
-            editTaskMutation={editTaskMutation}
             searchResults={searchResults}
             searchTerm={searchTerm}
-            selectedContact={selectedContact}
             selectedTask={selectedTask ?? null}
             setDescription={setDescription}
             setSearchTerm={setSearchTerm}

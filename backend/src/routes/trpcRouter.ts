@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { publicProcedure, trpcRouter } from '../../trpc';
 import dbSvc from '../dbSvc';
 import { ContactsModel, ContactsSchema, TaskModel, TaskSchema } from '../types';
@@ -33,17 +34,31 @@ export const tRCPRouter = trpcRouter({
     });
     return task;
   }),
-  getTasks: publicProcedure.query(async () => {
-    const tasks = await dbSvc.list({ model: TaskModel });
-    return tasks;
-  }),
+  getTasks: publicProcedure
+    .input(
+      z.object({
+        userId: z.string()
+      })
+    )
+    .query(async (opts) => {
+      const userId = opts.input.userId;
+      const tasks = await dbSvc.list({ model: TaskModel, userId });
+      return tasks;
+    }),
   addContact: publicProcedure.input(ContactsSchema).mutation(async (opts) => {
     const contact = opts.input;
     await dbSvc.create({ model: ContactsModel, data: contact });
     return contact;
   }),
-  getContacts: publicProcedure.query(async () => {
-    const contacts = await dbSvc.list({ model: ContactsModel });
-    return contacts;
-  })
+  getContacts: publicProcedure
+    .input(
+      z.object({
+        userId: z.string()
+      })
+    )
+    .query(async (opts) => {
+      const userId = opts.input.userId;
+      const contacts = await dbSvc.list({ model: ContactsModel, userId });
+      return contacts;
+    })
 });

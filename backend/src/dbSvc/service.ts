@@ -6,11 +6,7 @@ export class DbSvc {
   private db: mongoose.Connection;
 
   constructor() {
-    this.mongoDbUrl =
-      process.env.MONGO_DB_URL ||
-      `mongodb://localhost:27017/${
-        process.env.MONGO_DB_NAME || 'task-management'
-      }`;
+    this.mongoDbUrl = process.env.MONGO_DB_URL!;
     this.mongoose = mongoose;
     this.mongoose.connect(this.mongoDbUrl);
     this.db = mongoose.connection;
@@ -34,9 +30,10 @@ export class DbSvc {
 
   public async list<D extends Document>(args: {
     model: Model<D>;
+    userId: string;
   }): Promise<D[]> {
     try {
-      return await args.model.find({});
+      return await args.model.find({ userId: args.userId });
     } catch (error) {
       console.log('error', error);
       return [];

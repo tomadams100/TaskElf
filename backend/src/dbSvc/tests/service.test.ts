@@ -54,10 +54,10 @@ describe('DbSvc', () => {
 
   it('should handle list operation', async () => {
     const dbSvc = new DbSvc();
-    await exampleModel.create({ id: '1', name: 'Example 1' });
-    await exampleModel.create({ id: '2', name: 'Example 2' });
+    await exampleModel.create({ id: '1', name: 'Example 1', userId: '1' });
+    await exampleModel.create({ id: '2', name: 'Example 2', userId: '1' });
 
-    const result = await dbSvc.list({ model: exampleModel });
+    const result = await dbSvc.list({ model: exampleModel, userId: '1' });
 
     expect(result).toHaveLength(2);
   });
