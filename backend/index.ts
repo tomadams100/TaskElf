@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: `http://${process.env.BACK_HOST}:${process.env.BACK_PORT}`,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true
   })

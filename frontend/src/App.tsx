@@ -27,7 +27,11 @@ export default function App() {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useState(() =>
     trpc.createClient({
-      links: [httpBatchLink({ url: 'http://localhost:8080/trpc' })]
+      links: [
+        httpBatchLink({
+          url: `http://${process.env.BACK_HOST}:${process.env.BACK_PORT}/trpc`
+        })
+      ]
     })
   );
 
