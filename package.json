@@ -1,0 +1,22 @@
+{
+  "name": "task-management",
+  "version": "1.0.0",
+  "description": "Lots to do before Christmas? Feeling like one of Santa's elves? Don't worry, we've got you covered! Task Elf is here to help 🎄",
+  "main": "index.js",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start": "concurrently \"yarn workspace backend start\" \"yarn workspace frontend start\"",
+    "build": "concurrently \"yarn workspace backend build\" \"yarn workspace frontend build\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}
